@@ -1,8 +1,13 @@
 {
   "name": "project-cli",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "author": "Manu Ustenko",
+  "description": "Manu Ustenko cli",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "mucli": "lib/index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,10 +15,14 @@
     "type": "git",
     "url": "git+https://github.com/NovoManu/project-cli.git"
   },
-  "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/NovoManu/project-cli/issues"
   },
-  "homepage": "https://github.com/NovoManu/project-cli#readme"
+  "homepage": "https://github.com/NovoManu/project-cli#readme",
+  "dependencies": {
+    "chalk": "^5.0.1",
+    "commander": "^9.2.0",
+    "nunjucks": "^3.2.3"
+  }
 }
