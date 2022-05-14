@@ -1,3 +1,5 @@
+const chalk = require('chalk')
+require('dotenv').config()
 import { Command } from 'commander'
 
 export default (command: Command) => {
@@ -9,6 +11,6 @@ export default (command: Command) => {
     .command('templates')
     .description('Get available templates')
     .action(() => {
-      console.log('Getting templates')
+      console.log(chalk.inverse('Getting templates'))
     })
 }
