@@ -1,5 +1,5 @@
 import { Command } from 'commander'
-import project from './commands/project'
+import { project } from './commands'
 
 const program = new Command()
 

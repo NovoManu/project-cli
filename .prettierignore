@@ -1,0 +1,16 @@
+node_modules
+dist
+lib
+.gitlab-ci.yml
+.prettierrc.json
+.eslintrc.json
+iac
+iac/**
+jest.config.js
+tsconfig.json
+.releaserc.json
+package.json
+package-lock.json
+.gitlab-ci.yml
+package.json
+test/index.test.ts
