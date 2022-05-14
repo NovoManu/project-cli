@@ -1,9 +1,8 @@
-interface test {
-  hello: string
-}
+import { Command } from 'commander'
+import project from './commands/project'
 
-const t: test = {
-  hello: 'world'
-}
+const program = new Command()
 
-console.log(t.hello)
+project(program)
+
+program.parse()
