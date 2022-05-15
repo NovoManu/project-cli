@@ -56,7 +56,8 @@ export default (command: Command) => {
     .command('install')
     .description('Install a new project from a template')
     .option('-t, --template <template>', 'Template name')
-    .action(async ({ template: templateName }) => {
+    .option('-n, --name <name>', 'Project name')
+    .action(async ({ template: templateName, name: projectName }) => {
       console.log(chalk.blue('Checking available templates'))
       const templates = await getTemplates()
       if (templates) {
@@ -74,7 +75,7 @@ export default (command: Command) => {
           )
           console.log(chalk.blue(`Copying files from template ${templateName}`))
           // @ts-ignore
-          copyTemplateFiles(res.data)
+          copyTemplateFiles(res.data, templateName, projectName)
         } else {
           console.log(
             chalk.red(`Template with name ${templateName} does not exist`)
