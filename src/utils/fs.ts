@@ -96,6 +96,17 @@ const copyTempFilesToDestination = (
   })
 }
 
+const createSettingsFile = (templateName: string, destinationDirectory) => {
+  const settingsFileName = 'mucli.json'
+  const destination = path.join(destinationDirectory, `/${settingsFileName}`)
+  const settings = {
+    templateId: templateName
+  }
+  fs.writeFile(destination, JSON.stringify(settings), 'utf8', () => {
+    console.log(chalk.blue('Settings file is created'))
+  })
+}
+
 const cleanTempDirectory = () => {
   rimraf(cwd, () => {
     console.log(chalk.blue('Temp files are deleted'))
@@ -119,5 +130,6 @@ export const copyTemplateFiles = async (
     templateName
   )
   copyTempFilesToDestination(tempDirectory, destinationDirectory, templateName)
+  createSettingsFile(templateName, destinationDirectory)
   // cleanTempDirectory()
 }
