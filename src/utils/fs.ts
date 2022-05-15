@@ -115,7 +115,7 @@ const cleanTempDirectory = () => {
 
 export const copyTemplateFiles = async (
   arr: Buffer,
-  templateName,
+  templateName: string,
   projectName: string = null
 ) => {
   checkOrCreateDirectory(cwd)

@@ -1,9 +1,12 @@
+import { IInstallationSettings } from '../types'
+
 const chalk = require('chalk')
 require('dotenv').config()
 import { Command } from 'commander'
 import octokit from '../utils/Octokit'
 import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types'
 import { copyTemplateFiles } from '../utils/fs'
+import { getInstallationSettings } from '../utils/settings'
 
 export default (command: Command) => {
   const { GITHUB_OWNER, GITHUB_TEMPLATES_REPOSITORY, GITHUB_TEMPLATES_PATH } =
@@ -58,6 +61,8 @@ export default (command: Command) => {
     .option('-t, --template <template>', 'Template name')
     .option('-n, --name <name>', 'Project name')
     .action(async ({ template: templateName, name: projectName }) => {
+      const installationSettings: IInstallationSettings =
+        await getInstallationSettings()
       console.log(chalk.blue('Checking available templates'))
       const templates = await getTemplates()
       if (templates) {

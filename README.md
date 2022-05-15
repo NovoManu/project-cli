@@ -11,3 +11,5 @@ Get list of templates
 ```
 npm start project templates
 ```
+
+Check [prompt library](https://github.com/SBoudrias/Inquirer.js/tree/master/packages) documentation to include cli questions
