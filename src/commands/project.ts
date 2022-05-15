@@ -79,8 +79,13 @@ export default (command: Command) => {
             }
           )
           console.log(chalk.blue(`Copying files from template ${templateName}`))
-          // @ts-ignore
-          await copyTemplateFiles(res.data, templateName, projectName)
+          await copyTemplateFiles(
+            // @ts-ignore
+            res.data,
+            templateName,
+            projectName,
+            installationSettings
+          )
         } else {
           console.log(
             chalk.red(`Template with name ${templateName} does not exist`)

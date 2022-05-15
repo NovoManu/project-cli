@@ -1,9 +1,14 @@
+import { IInstallationSettings } from '../types'
+
 const tar = require('tar')
 const rimraf = require('rimraf')
 import * as path from 'path'
 import * as fs from 'fs'
 import { Buffer } from 'buffer'
 import * as chalk from 'chalk'
+import * as nunjucks from 'nunjucks'
+
+nunjucks.configure({ autoescape: false })
 
 const tempDirName = '.tmp'
 const archiveName = 'archive.tar.gz'
@@ -63,37 +68,48 @@ const removePrefixFromFileName = (fileName: string) => {
   return fileName
 }
 
+const setDynamicDataInFile = (fileName: string, settings) => {
+  return nunjucks.render(fileName, settings)
+}
+
 const copyTempFilesToDestination = (
   tempDirectory: string,
   destinationDir: string,
   templateName: string,
+  settings: IInstallationSettings,
   relativePath: string = ''
 ) => {
-  fs.readdirSync(tempDirectory, { withFileTypes: true }).forEach((file) => {
-    if (file.isDirectory()) {
-      // Note: extend the path with additional directory
-      relativePath += `/${file.name}`
-      copyTempFilesToDestination(
-        path.join(tempDirectory, file.name),
-        destinationDir,
-        templateName,
-        relativePath
-      )
-    } else {
-      const source = `${tempDirectory}/${file.name}`
-      // Note: create destination for files in directories
-      const destinationDirectory = `${path.join(
-        process.cwd(),
-        destinationDir
-      )}${relativePath}`
-      checkOrCreateDirectory(destinationDirectory)
-      const name = removePrefixFromFileName(file.name)
-      const destination = `${destinationDirectory}/${name}`
-      fs.copyFile(source, destination, (err) => {
-        if (err) throw err
-      })
+  fs.readdirSync(tempDirectory, { withFileTypes: true }).forEach(
+    async (file) => {
+      if (file.isDirectory()) {
+        // Note: extend the path with additional directory
+        relativePath += `/${file.name}`
+        copyTempFilesToDestination(
+          path.join(tempDirectory, file.name),
+          destinationDir,
+          templateName,
+          settings,
+          relativePath
+        )
+      } else {
+        const source = `${tempDirectory}/${file.name}`
+        const fileContent = setDynamicDataInFile(source, settings)
+        // Note: create destination for files in directories
+        const destinationDirectory = `${path.join(
+          process.cwd(),
+          destinationDir
+        )}${relativePath}`
+        checkOrCreateDirectory(destinationDirectory)
+        const name = removePrefixFromFileName(file.name)
+        const destination = `${destinationDirectory}/${name}`
+        try {
+          fs.writeFileSync(destination, fileContent)
+        } catch (e) {
+          throw e
+        }
+      }
     }
-  })
+  )
 }
 
 const createSettingsFile = (templateName: string, destinationDirectory) => {
@@ -116,7 +132,8 @@ const cleanTempDirectory = () => {
 export const copyTemplateFiles = async (
   arr: Buffer,
   templateName: string,
-  projectName: string = null
+  projectName: string = null,
+  settings: IInstallationSettings
 ) => {
   checkOrCreateDirectory(cwd)
   saveTempArchive(arr)
@@ -129,7 +146,12 @@ export const copyTemplateFiles = async (
     process.env.GITHUB_TEMPLATES_PATH,
     templateName
   )
-  copyTempFilesToDestination(tempDirectory, destinationDirectory, templateName)
+  copyTempFilesToDestination(
+    tempDirectory,
+    destinationDirectory,
+    templateName,
+    settings
+  )
   createSettingsFile(templateName, destinationDirectory)
   // cleanTempDirectory()
 }
