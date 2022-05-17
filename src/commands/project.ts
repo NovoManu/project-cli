@@ -3,25 +3,11 @@ import { IInstallationSettings } from '../types'
 const chalk = require('chalk')
 require('dotenv').config()
 import { Command } from 'commander'
-import octokit from '../utils/Octokit'
-import { GetResponseDataTypeFromEndpointMethod } from '@octokit/types'
-import { copyTemplateFiles } from '../utils/fs'
+import { getTemplates, getRepositoryTarArchive } from '../utils/github'
+import { copyTemplateFiles, syncProject } from '../utils/fs'
 import { getInstallationSettings } from '../utils/settings'
 
 export default (command: Command) => {
-  const { GITHUB_OWNER, GITHUB_TEMPLATES_REPOSITORY, GITHUB_TEMPLATES_PATH } =
-    process.env
-
-  const getTemplates = async (): Promise<any> => {
-    const res: GetResponseDataTypeFromEndpointMethod<any> =
-      await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-        owner: GITHUB_OWNER,
-        repo: GITHUB_TEMPLATES_REPOSITORY,
-        path: GITHUB_TEMPLATES_PATH
-      })
-    return res.data
-  }
-
   const project = command
     .command('project')
     .description(
@@ -70,14 +56,7 @@ export default (command: Command) => {
         console.log(chalk.blue(`Finding template ${templateName}`))
         if (template) {
           // Note: get repo archive
-          const res = await octokit.request(
-            'GET /repos/{owner}/{repo}/tarball/{ref}',
-            {
-              owner: GITHUB_OWNER,
-              repo: GITHUB_TEMPLATES_REPOSITORY,
-              ref: 'main'
-            }
-          )
+          const res = await getRepositoryTarArchive()
           console.log(chalk.blue(`Copying files from template ${templateName}`))
           await copyTemplateFiles(
             // @ts-ignore
@@ -94,5 +73,14 @@ export default (command: Command) => {
       } else {
         console.log('No Templates found')
       }
+    })
+  /*
+    Project sync with a template
+ */
+  project
+    .command('sync')
+    .description('Sync a project with a template')
+    .action(() => {
+      syncProject()
     })
 }

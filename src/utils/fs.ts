@@ -14,6 +14,7 @@ const tempDirName = '.tmp'
 const archiveName = 'archive.tar.gz'
 const cwd = path.join(process.cwd(), tempDirName)
 const archivePath = path.join(cwd, archiveName)
+const settingsFileName = 'mucli.json'
 
 interface IFilePrefix {
   id: string
@@ -113,7 +114,6 @@ const copyTempFilesToDestination = (
 }
 
 const createSettingsFile = (templateName: string, destinationDirectory) => {
-  const settingsFileName = 'mucli.json'
   const destination = path.join(destinationDirectory, `/${settingsFileName}`)
   const settings = {
     templateId: templateName
@@ -121,6 +121,10 @@ const createSettingsFile = (templateName: string, destinationDirectory) => {
   fs.writeFile(destination, JSON.stringify(settings), 'utf8', () => {
     console.log(chalk.blue('Settings file is created'))
   })
+}
+
+const readSettingFile = () => {
+  return JSON.parse(fs.readFileSync(settingsFileName, 'utf-8'))
 }
 
 const cleanTempDirectory = () => {
@@ -154,4 +158,9 @@ export const copyTemplateFiles = async (
   )
   createSettingsFile(templateName, destinationDirectory)
   // cleanTempDirectory()
+}
+
+export const syncProject = () => {
+  const settings = readSettingFile()
+  console.log(settings)
 }
