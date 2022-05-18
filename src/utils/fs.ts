@@ -1,4 +1,4 @@
-import { IInstallationSettings } from '../types'
+import { IInstallationSettings, IProjectSettings } from '../types'
 
 const tar = require('tar')
 const rimraf = require('rimraf')
@@ -115,7 +115,7 @@ const copyTempFilesToDestination = (
 
 const createSettingsFile = (templateName: string, destinationDirectory) => {
   const destination = path.join(destinationDirectory, `/${settingsFileName}`)
-  const settings = {
+  const settings: IProjectSettings = {
     templateId: templateName
   }
   fs.writeFile(destination, JSON.stringify(settings), 'utf8', () => {
@@ -123,7 +123,7 @@ const createSettingsFile = (templateName: string, destinationDirectory) => {
   })
 }
 
-const readSettingFile = () => {
+export const readSettingFile = (): IProjectSettings => {
   return JSON.parse(fs.readFileSync(settingsFileName, 'utf-8'))
 }
 

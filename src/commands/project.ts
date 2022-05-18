@@ -1,10 +1,13 @@
-import { IInstallationSettings } from '../types'
+import { IInstallationSettings, IProjectSettings } from '../types'
+import * as path from 'path'
 
 const chalk = require('chalk')
-require('dotenv').config()
+require('dotenv').config({
+  path: `${path.join(__dirname, '..', '..')}/.env`
+})
 import { Command } from 'commander'
 import { getTemplates, getRepositoryTarArchive } from '../utils/github'
-import { copyTemplateFiles, syncProject } from '../utils/fs'
+import { copyTemplateFiles, syncProject, readSettingFile } from '../utils/fs'
 import { getInstallationSettings } from '../utils/settings'
 
 export default (command: Command) => {
@@ -52,8 +55,8 @@ export default (command: Command) => {
       console.log(chalk.blue('Checking available templates'))
       const templates = await getTemplates()
       if (templates) {
-        const template = templates.find(({ name }) => name === templateName)
         console.log(chalk.blue(`Finding template ${templateName}`))
+        const template = templates.find(({ name }) => name === templateName)
         if (template) {
           // Note: get repo archive
           const res = await getRepositoryTarArchive()
@@ -80,7 +83,16 @@ export default (command: Command) => {
   project
     .command('sync')
     .description('Sync a project with a template')
-    .action(() => {
+    .action(async () => {
+      console.log(chalk.blue('Checking available templates'))
+      const templates = await getTemplates()
+      if (templates) {
+        const settings: IProjectSettings = readSettingFile()
+        console.log(chalk.blue(`Finding template ${settings?.templateId}`))
+        const template = templates.find(
+          ({ name }) => name === settings?.templateId
+        )
+      }
       syncProject()
     })
 }
