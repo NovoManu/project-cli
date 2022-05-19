@@ -3,6 +3,6 @@ export interface IInstallationSettings {
   devPort: number
 }
 
-export interface IProjectSettings {
+export interface IProjectSettings extends IInstallationSettings{
   templateId: string
 }

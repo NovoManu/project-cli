@@ -92,7 +92,16 @@ export default (command: Command) => {
         const template = templates.find(
           ({ name }) => name === settings?.templateId
         )
+        if (template) {
+          // Note: get repo archive
+          const res = await getRepositoryTarArchive()
+          // @ts-ignore
+          await syncProject(res.data, settings)
+        } else {
+          console.log(
+            chalk.red(`Template with id ${settings.templateId} is not found`)
+          )
+        }
       }
-      syncProject()
     })
 }

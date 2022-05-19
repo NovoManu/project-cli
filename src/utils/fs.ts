@@ -4,6 +4,7 @@ const tar = require('tar')
 const rimraf = require('rimraf')
 import * as path from 'path'
 import * as fs from 'fs'
+import { Dirent } from 'fs'
 import { Buffer } from 'buffer'
 import * as chalk from 'chalk'
 import * as nunjucks from 'nunjucks'
@@ -12,8 +13,8 @@ nunjucks.configure({ autoescape: false })
 
 const tempDirName = '.tmp'
 const archiveName = 'archive.tar.gz'
-const cwd = path.join(process.cwd(), tempDirName)
-const archivePath = path.join(cwd, archiveName)
+const archiveDirPath = path.join(process.cwd(), tempDirName)
+const archiveFilePath = path.join(archiveDirPath, archiveName)
 const settingsFileName = 'mucli.json'
 
 interface IFilePrefix {
@@ -35,7 +36,7 @@ const filePrefixes: IFilePrefix[] = [
   }
 ]
 
-const getDestinationDirPath = (templateName: string): string => {
+const getDefaultPackageName = (templateName: string): string => {
   return `my-project-${templateName}`
 }
 
@@ -47,7 +48,7 @@ const checkOrCreateDirectory = (dir: string) => {
 
 const extractTarArchive = () => {
   return new Promise<void>((resolve) => {
-    const stream = fs.createReadStream(archivePath).pipe(
+    const stream = fs.createReadStream(archiveFilePath).pipe(
       tar.x({
         strip: 1,
         C: tempDirName
@@ -58,7 +59,7 @@ const extractTarArchive = () => {
 }
 
 const saveTempArchive = (arr: Buffer) => {
-  fs.appendFileSync(archivePath, Buffer.from(arr))
+  fs.appendFileSync(archiveFilePath, Buffer.from(arr))
 }
 
 const removePrefixFromFileName = (fileName: string) => {
@@ -73,6 +74,30 @@ const setDynamicDataInFile = (fileName: string, settings) => {
   return nunjucks.render(fileName, settings)
 }
 
+const copyFile = (
+  tempDirectory: string,
+  file: Dirent,
+  destinationDir,
+  settings,
+  relativePath
+) => {
+  const source = `${tempDirectory}/${file.name}`
+  const fileContent = setDynamicDataInFile(source, settings)
+  // Note: create destination for files in directories
+  const destinationDirectory = `${path.join(
+    process.cwd(),
+    destinationDir
+  )}${relativePath}`
+  checkOrCreateDirectory(destinationDirectory)
+  const name = removePrefixFromFileName(file.name)
+  const destination = `${destinationDirectory}/${name}`
+  try {
+    fs.writeFileSync(destination, fileContent)
+  } catch (e) {
+    throw e
+  }
+}
+
 const copyTempFilesToDestination = (
   tempDirectory: string,
   destinationDir: string,
@@ -81,7 +106,7 @@ const copyTempFilesToDestination = (
   relativePath: string = ''
 ) => {
   fs.readdirSync(tempDirectory, { withFileTypes: true }).forEach(
-    async (file) => {
+    async (file: Dirent) => {
       if (file.isDirectory()) {
         // Note: extend the path with additional directory
         relativePath += `/${file.name}`
@@ -93,30 +118,21 @@ const copyTempFilesToDestination = (
           relativePath
         )
       } else {
-        const source = `${tempDirectory}/${file.name}`
-        const fileContent = setDynamicDataInFile(source, settings)
-        // Note: create destination for files in directories
-        const destinationDirectory = `${path.join(
-          process.cwd(),
-          destinationDir
-        )}${relativePath}`
-        checkOrCreateDirectory(destinationDirectory)
-        const name = removePrefixFromFileName(file.name)
-        const destination = `${destinationDirectory}/${name}`
-        try {
-          fs.writeFileSync(destination, fileContent)
-        } catch (e) {
-          throw e
-        }
+        copyFile(tempDirectory, file, destinationDir, settings, relativePath)
       }
     }
   )
 }
 
-const createSettingsFile = (templateName: string, destinationDirectory) => {
+const createSettingsFile = (
+  templateName: string,
+  installationSettings: IInstallationSettings,
+  destinationDirectory
+) => {
   const destination = path.join(destinationDirectory, `/${settingsFileName}`)
   const settings: IProjectSettings = {
-    templateId: templateName
+    templateId: templateName,
+    ...installationSettings
   }
   fs.writeFile(destination, JSON.stringify(settings), 'utf8', () => {
     console.log(chalk.blue('Settings file is created'))
@@ -128,25 +144,25 @@ export const readSettingFile = (): IProjectSettings => {
 }
 
 const cleanTempDirectory = () => {
-  rimraf(cwd, () => {
+  rimraf(archiveDirPath, () => {
     console.log(chalk.blue('Temp files are deleted'))
   })
 }
 
 export const copyTemplateFiles = async (
-  arr: Buffer,
+  buffer: Buffer,
   templateName: string,
   projectName: string = null,
   settings: IInstallationSettings
 ) => {
-  checkOrCreateDirectory(cwd)
-  saveTempArchive(arr)
+  checkOrCreateDirectory(archiveDirPath)
+  saveTempArchive(buffer)
   await extractTarArchive()
   const destinationDirectory =
-    projectName || getDestinationDirPath(templateName)
+    projectName || getDefaultPackageName(templateName)
   checkOrCreateDirectory(destinationDirectory)
   let tempDirectory = path.join(
-    cwd,
+    archiveDirPath,
     process.env.GITHUB_TEMPLATES_PATH,
     templateName
   )
@@ -156,11 +172,61 @@ export const copyTemplateFiles = async (
     templateName,
     settings
   )
-  createSettingsFile(templateName, destinationDirectory)
-  // cleanTempDirectory()
+  createSettingsFile(templateName, settings, destinationDirectory)
+  cleanTempDirectory()
 }
 
-export const syncProject = () => {
-  const settings = readSettingFile()
-  console.log(settings)
+const removeBootstrapOnlyFiles = (tempPath: string, relativePath = '') => {
+  const bootstrapPrefix = filePrefixes.find(({ id }) => id === 'bootstrap')
+  fs.readdirSync(tempPath, { withFileTypes: true }).forEach((file: Dirent) => {
+    if (file.isDirectory()) {
+      relativePath += `/${file.name}`
+      removeBootstrapOnlyFiles(path.join(tempPath, file.name), relativePath)
+    } else {
+      if (file.name.includes(bootstrapPrefix.prefix)) {
+        fs.unlinkSync(path.join(tempPath, file.name))
+      }
+    }
+  })
+}
+
+const removeSyncFilesIfExists = (tempPath: string, relativePath = '') => {
+  const syncPrefix = filePrefixes.find(({ id }) => id === 'sync')
+  fs.readdirSync(tempPath, { withFileTypes: true }).forEach((file: Dirent) => {
+    if (file.isDirectory()) {
+      relativePath += `/${file.name}`
+      removeSyncFilesIfExists(path.join(tempPath, file.name), relativePath)
+    } else {
+      if (file.name.includes(syncPrefix.prefix)) {
+        const isFileExists = fs.existsSync(
+          path.join(
+            process.cwd(),
+            relativePath,
+            removePrefixFromFileName(file.name)
+          )
+        )
+        if (isFileExists) {
+          fs.unlinkSync(path.join(tempPath, file.name))
+        }
+      }
+    }
+  })
+}
+
+export const syncProject = async (
+  buffer: Buffer,
+  settings: IProjectSettings
+) => {
+  checkOrCreateDirectory(archiveDirPath)
+  saveTempArchive(buffer)
+  await extractTarArchive()
+  let tempDirectory = path.join(
+    archiveDirPath,
+    process.env.GITHUB_TEMPLATES_PATH,
+    settings.templateId
+  )
+  removeBootstrapOnlyFiles(tempDirectory)
+  removeSyncFilesIfExists(tempDirectory)
+  copyTempFilesToDestination(tempDirectory, '', settings.templateId, settings)
+  cleanTempDirectory()
 }

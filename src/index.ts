@@ -1,3 +1,5 @@
+#!/usr/bin/env -S npx ts-node -T
+
 import { Command } from 'commander'
 import { project } from './commands'
 
