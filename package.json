@@ -1,6 +1,6 @@
 {
-  "name": "project-cli",
-  "version": "1.0.0",
+  "name": "@novomanu/project-cli",
+  "version": "0.0.1",
   "author": "Manu Ustenko",
   "description": "Manu Ustenko cli",
   "main": "lib/index.js",
@@ -10,8 +10,13 @@
   },
   "scripts": {
     "start": "ts-node src/index.ts",
+    "build": "tsc",
     "lint": "eslint src --ext .ts",
-    "format": "eslint src --fix --ext .ts && pretty-quick"
+    "format": "eslint src --fix --ext .ts && pretty-quick",
+    "prepare": "npm run build",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
