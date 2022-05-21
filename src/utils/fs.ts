@@ -9,6 +9,8 @@ import { Buffer } from 'buffer'
 import * as chalk from 'chalk'
 import * as nunjucks from 'nunjucks'
 
+const { GITHUB_TEMPLATES_PATH } = process.env
+
 nunjucks.configure({ autoescape: false })
 
 const tempDirName = '.tmp'
@@ -42,7 +44,7 @@ const getDefaultPackageName = (templateName: string): string => {
 
 const checkOrCreateDirectory = (dir: string) => {
   if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir)
+    fs.mkdirSync(dir, { recursive: true })
   }
 }
 
@@ -76,21 +78,18 @@ const setDynamicDataInFile = (fileName: string, settings) => {
 
 const copyFile = (
   tempDirectory: string,
+  destDirectory: string,
   file: Dirent,
-  destinationDir,
-  settings,
-  relativePath
+  templateName,
+  settings
 ) => {
   const source = `${tempDirectory}/${file.name}`
   const fileContent = setDynamicDataInFile(source, settings)
-  // Note: create destination for files in directories
-  const destinationDirectory = `${path.join(
-    process.cwd(),
-    destinationDir
-  )}${relativePath}`
-  checkOrCreateDirectory(destinationDirectory)
-  const name = removePrefixFromFileName(file.name)
-  const destination = `${destinationDirectory}/${name}`
+  const replacementString = `${tempDirName}/${GITHUB_TEMPLATES_PATH}/${templateName}`
+  const destination = removePrefixFromFileName(
+    source.replace(replacementString, destDirectory)
+  )
+  checkOrCreateDirectory(destination.split('/').slice(0, -1).join('/'))
   try {
     fs.writeFileSync(destination, fileContent)
   } catch (e) {
@@ -100,25 +99,21 @@ const copyFile = (
 
 const copyTempFilesToDestination = (
   tempDirectory: string,
-  destinationDir: string,
+  destDirectory: string,
   templateName: string,
-  settings: IInstallationSettings,
-  relativePath: string = ''
+  settings: IInstallationSettings
 ) => {
   fs.readdirSync(tempDirectory, { withFileTypes: true }).forEach(
     async (file: Dirent) => {
       if (file.isDirectory()) {
-        // Note: extend the path with additional directory
-        relativePath += `/${file.name}`
         copyTempFilesToDestination(
           path.join(tempDirectory, file.name),
-          destinationDir,
+          destDirectory,
           templateName,
-          settings,
-          relativePath
+          settings
         )
       } else {
-        copyFile(tempDirectory, file, destinationDir, settings, relativePath)
+        copyFile(tempDirectory, destDirectory, file, templateName, settings)
       }
     }
   )
@@ -140,7 +135,13 @@ const createSettingsFile = (
 }
 
 export const readSettingFile = (): IProjectSettings => {
-  return JSON.parse(fs.readFileSync(settingsFileName, 'utf-8'))
+  let settings
+  try {
+    settings = fs.readFileSync(settingsFileName, 'utf-8')
+  } catch (e) {
+    throw new Error('Could not find or open settings file')
+  }
+  return JSON.parse(settings)
 }
 
 const cleanTempDirectory = () => {

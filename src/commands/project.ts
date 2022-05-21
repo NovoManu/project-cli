@@ -50,8 +50,6 @@ export default (command: Command) => {
     .option('-t, --template <template>', 'Template name')
     .option('-n, --name <name>', 'Project name')
     .action(async ({ template: templateName, name: projectName }) => {
-      const installationSettings: IInstallationSettings =
-        await getInstallationSettings()
       console.log(chalk.blue('Checking available templates'))
       const templates = await getTemplates()
       if (templates) {
@@ -61,6 +59,8 @@ export default (command: Command) => {
           // Note: get repo archive
           const res = await getRepositoryTarArchive()
           console.log(chalk.blue(`Copying files from template ${templateName}`))
+          const installationSettings: IInstallationSettings =
+            await getInstallationSettings()
           await copyTemplateFiles(
             // @ts-ignore
             res.data,
@@ -70,7 +70,11 @@ export default (command: Command) => {
           )
         } else {
           console.log(
-            chalk.red(`Template with name ${templateName} does not exist`)
+            chalk.red(
+              `Template with name ${
+                templateName || 'default-project'
+              } does not exist`
+            )
           )
         }
       } else {
