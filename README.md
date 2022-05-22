@@ -6,17 +6,23 @@ npm install -g @novomanu/project-cli
 ```
 
 Include env variables
+
+For zsh
 ```
-export GITHUB_TOKEN={your_token}
+echo 'export GITHUB_TOKEN={your_token}' >> ~/.zshenv
+echo 'export GITHUB_OWNER=NovoManu' >> ~/.zshenv
+echo 'export GITHUB_TEMPLATES_REPOSITORY=cli-templates' >> ~/.zshenv
+echo 'export GITHUB_TEMPLATES_PATH=templates' >> ~/.zshenv
+source ~/.zshenv
 ```
+
+For bash
 ```
-GITHUB_OWNER=NovoManu
-```
-```
-GITHUB_TEMPLATES_REPOSITORY=cli-templates
-```
-```
-GITHUB_TEMPLATES_PATH=templates
+echo 'export GITHUB_TOKEN={your_token}' >> ~/.bash_profile
+echo 'export GITHUB_OWNER=NovoManu' >> ~/.bash_profile
+echo 'export GITHUB_TEMPLATES_REPOSITORY=cli-templates' >> ~/.bash_profile
+echo 'export GITHUB_TEMPLATES_PATH=templates' >> ~/.bash_profile
+source ~/.bash_profile
 ```
 
 ## Usage
