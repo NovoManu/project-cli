@@ -1,7 +1,22 @@
 ## Installation
 
+Install the package globally
 ```
 npm install -g @novomanu/project-cli
+```
+
+Include env variables
+```
+export GITHUB_TOKEN={your_token}
+```
+```
+GITHUB_OWNER=NovoManu
+```
+```
+GITHUB_TEMPLATES_REPOSITORY=cli-templates
+```
+```
+GITHUB_TEMPLATES_PATH=templates
 ```
 
 ## Usage

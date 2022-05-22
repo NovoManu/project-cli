@@ -8,6 +8,9 @@
   "bin": {
     "mucli": "lib/index.js"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "tsc",
@@ -35,6 +38,7 @@
     "commander": "^9.2.0",
     "dotenv": "^16.0.1",
     "nunjucks": "^3.2.3",
+    "rimraf": "^3.0.2",
     "tar": "^6.1.11"
   },
   "devDependencies": {
