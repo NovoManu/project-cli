@@ -1,4 +1,6 @@
 ## Installation
+Create github [token](https://docs.github.com/en/rest/guides/getting-started-with-the-rest-api#authentication)
+
 
 Install the package globally
 ```
@@ -45,9 +47,6 @@ mucli project sync
 
 
 ## Development
-
-Create github [token](https://docs.github.com/en/rest/guides/getting-started-with-the-rest-api#authentication)
-
 Fill the .env file (see .env.example)
 
 Install dependencies
