@@ -84,7 +84,13 @@ const copyFile = (
   settings
 ) => {
   const source = `${tempDirectory}/${file.name}`
-  const fileContent = setDynamicDataInFile(source, settings)
+  const notSupportedFiles = ['.jpg', '.png', 'jpeg', '.gif', '.woff']
+  let fileContent
+  if (notSupportedFiles.some((v) => file.name.includes(v))) {
+    fileContent = fs.readFileSync(source)
+  } else {
+    fileContent = setDynamicDataInFile(source, settings)
+  }
   const replacementString = `${tempDirName}/${GITHUB_TEMPLATES_PATH}/${templateName}`
   const destination = removePrefixFromFileName(
     source.replace(replacementString, destDirectory)
