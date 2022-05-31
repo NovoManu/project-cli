@@ -84,7 +84,7 @@ const copyFile = (
   settings
 ) => {
   const source = `${tempDirectory}/${file.name}`
-  const notSupportedFiles = ['.jpg', '.png', 'jpeg', '.gif', '.woff']
+  const notSupportedFiles = ['.jpg', '.png', 'jpeg', 'webp', '.gif', '.woff']
   let fileContent
   if (notSupportedFiles.some((v) => file.name.includes(v))) {
     fileContent = fs.readFileSync(source)
