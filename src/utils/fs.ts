@@ -183,12 +183,11 @@ export const copyTemplateFiles = async (
   cleanTempDirectory()
 }
 
-const removeBootstrapOnlyFiles = (tempPath: string, relativePath = '') => {
+const removeBootstrapOnlyFiles = (tempPath: string) => {
   const bootstrapPrefix = filePrefixes.find(({ id }) => id === 'bootstrap')
   fs.readdirSync(tempPath, { withFileTypes: true }).forEach((file: Dirent) => {
     if (file.isDirectory()) {
-      relativePath += `/${file.name}`
-      removeBootstrapOnlyFiles(path.join(tempPath, file.name), relativePath)
+      removeBootstrapOnlyFiles(path.join(tempPath, file.name))
     } else {
       if (file.name.includes(bootstrapPrefix.prefix)) {
         fs.unlinkSync(path.join(tempPath, file.name))
@@ -197,20 +196,17 @@ const removeBootstrapOnlyFiles = (tempPath: string, relativePath = '') => {
   })
 }
 
-const removeSyncFilesIfExists = (tempPath: string, relativePath = '') => {
+const removeSyncFilesIfExists = (tempPath: string, templateName) => {
   const syncPrefix = filePrefixes.find(({ id }) => id === 'sync')
   fs.readdirSync(tempPath, { withFileTypes: true }).forEach((file: Dirent) => {
     if (file.isDirectory()) {
-      relativePath += `/${file.name}`
-      removeSyncFilesIfExists(path.join(tempPath, file.name), relativePath)
+      removeSyncFilesIfExists(path.join(tempPath, file.name), templateName)
     } else {
       if (file.name.includes(syncPrefix.prefix)) {
+        const replacementString = `${tempDirName}/${GITHUB_TEMPLATES_PATH}/${templateName}`
+        const projectDestination = tempPath.replace(replacementString, '')
         const isFileExists = fs.existsSync(
-          path.join(
-            process.cwd(),
-            relativePath,
-            removePrefixFromFileName(file.name)
-          )
+          path.join(projectDestination, removePrefixFromFileName(file.name))
         )
         if (isFileExists) {
           fs.unlinkSync(path.join(tempPath, file.name))
@@ -233,7 +229,7 @@ export const syncProject = async (
     settings.templateId
   )
   removeBootstrapOnlyFiles(tempDirectory)
-  removeSyncFilesIfExists(tempDirectory)
+  removeSyncFilesIfExists(tempDirectory, settings.templateId)
   copyTempFilesToDestination(tempDirectory, '', settings.templateId, settings)
   cleanTempDirectory()
 }
