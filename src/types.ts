@@ -1,5 +1,5 @@
 export interface IInstallationSettings {
-  jest: boolean
+  [key: string]: any
   devPort: number
 }
 

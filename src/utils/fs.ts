@@ -76,7 +76,19 @@ const setDynamicDataInFile = (fileName: string, settings) => {
   return nunjucks.render(fileName, settings)
 }
 
-const copyFile = (
+const copyFile = (sourceDir: string, destinationDir: string, file: Dirent) => {
+  const source = `${sourceDir}/${file.name}`
+  const destination = `${destinationDir}/${file.name}`
+  const fileContent = fs.readFileSync(source)
+  checkOrCreateDirectory(destinationDir)
+  try {
+    fs.writeFileSync(destination, fileContent)
+  } catch (e) {
+    throw e
+  }
+}
+
+const copyFileWithReplacement = (
   tempDirectory: string,
   destDirectory: string,
   file: Dirent,
@@ -107,7 +119,8 @@ const copyTempFilesToDestination = (
   tempDirectory: string,
   destDirectory: string,
   templateName: string,
-  settings: IInstallationSettings
+  settings: IInstallationSettings | {},
+  isRawCopy: boolean = false
 ) => {
   fs.readdirSync(tempDirectory, { withFileTypes: true }).forEach(
     async (file: Dirent) => {
@@ -119,7 +132,17 @@ const copyTempFilesToDestination = (
           settings
         )
       } else {
-        copyFile(tempDirectory, destDirectory, file, templateName, settings)
+        if (isRawCopy) {
+          copyFile(tempDirectory, destDirectory, file)
+        } else {
+          copyFileWithReplacement(
+            tempDirectory,
+            destDirectory,
+            file,
+            templateName,
+            settings
+          )
+        }
       }
     }
   )
@@ -150,10 +173,37 @@ export const readSettingFile = (): IProjectSettings => {
   return JSON.parse(settings)
 }
 
-const cleanTempDirectory = () => {
-  rimraf(archiveDirPath, () => {
-    console.log(chalk.blue('Temp files are deleted'))
+const removeFileOrDirectoryWithContent = (
+  path: string,
+  message: string = `Directory ${path} is deleted`
+) => {
+  rimraf(path, () => {
+    console.log(chalk.blue(message))
   })
+}
+
+const cleanTempDirectory = () => {
+  removeFileOrDirectoryWithContent(archiveDirPath, 'Temp files are deleted')
+}
+
+const composeTemplate = (templateSettings, templateName) => {
+  console.log(chalk.blue('Composing the template...'))
+  const components = Object.keys(templateSettings).filter((key: string) => {
+    return templateSettings[key]
+  })
+  const destinationDirectory = `${tempDirName}/${GITHUB_TEMPLATES_PATH}/${templateName}`
+  components.forEach((component: string) => {
+    const componentDirectory = `${destinationDirectory}/${component}`
+    copyTempFilesToDestination(
+      componentDirectory,
+      destinationDirectory,
+      templateName,
+      {},
+      true
+    )
+    removeFileOrDirectoryWithContent(componentDirectory)
+  })
+  removeFileOrDirectoryWithContent(`${destinationDirectory}/settings.js`)
 }
 
 export const copyTemplateFiles = async (
@@ -165,6 +215,22 @@ export const copyTemplateFiles = async (
   checkOrCreateDirectory(archiveDirPath)
   saveTempArchive(buffer)
   await extractTarArchive()
+  // Check template settings file
+  const templateInstallationSettingsFile = `${archiveDirPath}/${GITHUB_TEMPLATES_PATH}/${templateName}/settings.js`
+  let templateInstallationSettings = {}
+  if (fs.existsSync(templateInstallationSettingsFile)) {
+    try {
+      const getInstallationSettings = require(templateInstallationSettingsFile)
+      templateInstallationSettings = await getInstallationSettings()
+    } catch (e) {
+      console.error(e)
+      throw new Error('Cannot read template settings file')
+    }
+  }
+  settings = {
+    ...settings,
+    ...templateInstallationSettings
+  }
   const destinationDirectory =
     projectName || getDefaultPackageName(templateName)
   checkOrCreateDirectory(destinationDirectory)
@@ -173,14 +239,20 @@ export const copyTemplateFiles = async (
     process.env.GITHUB_TEMPLATES_PATH,
     templateName
   )
-  copyTempFilesToDestination(
-    tempDirectory,
-    destinationDirectory,
-    templateName,
-    settings
-  )
-  createSettingsFile(templateName, settings, destinationDirectory)
-  cleanTempDirectory()
+  // Compose composable template
+  if (settings.templates) {
+    console.log(chalk.blue('Found composable template'))
+    settings.templates.test = false
+    composeTemplate(settings.templates, templateName)
+  }
+  // copyTempFilesToDestination(
+  //   tempDirectory,
+  //   destinationDirectory,
+  //   templateName,
+  //   settings
+  // )
+  // createSettingsFile(templateName, settings, destinationDirectory)
+  // cleanTempDirectory()
 }
 
 const removeBootstrapOnlyFiles = (tempPath: string) => {
