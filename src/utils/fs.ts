@@ -1,7 +1,8 @@
 import { IInstallationSettings, IProjectSettings } from '../types'
+import sortDependencies from './sortDependencies'
+import deepMerge from './deepMerge'
 
 const tar = require('tar')
-const rimraf = require('rimraf')
 import * as path from 'path'
 import * as fs from 'fs'
 import { Dirent } from 'fs'
@@ -76,12 +77,23 @@ const setDynamicDataInFile = (fileName: string, settings) => {
   return nunjucks.render(fileName, settings)
 }
 
+const checkMergeableFile = (fileName: string) => {
+  const filesForMerge = ['package.json']
+  return filesForMerge.some((file: string) => file.includes(fileName))
+}
+
 const copyFile = (sourceDir: string, destinationDir: string, file: Dirent) => {
   const source = `${sourceDir}/${file.name}`
   const destination = `${destinationDir}/${file.name}`
-  const fileContent = fs.readFileSync(source)
+  let fileContent = fs.readFileSync(source, 'utf-8')
   checkOrCreateDirectory(destinationDir)
-  console.log(sourceDir, destinationDir)
+  if (checkMergeableFile(file.name) && fs.existsSync(destination)) {
+    const existing = fs.readFileSync(destination, 'utf-8')
+    const merge = sortDependencies(
+      deepMerge(JSON.parse(existing), JSON.parse(fileContent))
+    )
+    fileContent = JSON.stringify(merge, null, 4)
+  }
   try {
     fs.writeFileSync(destination, fileContent)
   } catch (e) {
@@ -104,11 +116,8 @@ const copyFileWithReplacement = (
   } else {
     fileContent = setDynamicDataInFile(source, settings)
   }
-  const replacementString = `${tempDirName}/${GITHUB_TEMPLATES_PATH}/${templateName}`
-  const destination = removePrefixFromFileName(
-    source.replace(replacementString, destDirectory)
-  )
-  checkOrCreateDirectory(destination.split('/').slice(0, -1).join('/'))
+  const destination = removePrefixFromFileName(`${destDirectory}/${file.name}`)
+  checkOrCreateDirectory(destDirectory)
   try {
     fs.writeFileSync(destination, fileContent)
   } catch (e) {
@@ -124,7 +133,7 @@ const copyTempFilesToDestination = (
   isRawCopy: boolean = false
 ) => {
   fs.readdirSync(tempDirectory, { withFileTypes: true }).forEach(
-    async (file: Dirent) => {
+    (file: Dirent) => {
       if (file.isDirectory()) {
         copyTempFilesToDestination(
           path.join(tempDirectory, file.name),
@@ -160,7 +169,7 @@ const createSettingsFile = (
     templateId: templateName,
     ...installationSettings
   }
-  fs.writeFile(destination, JSON.stringify(settings), 'utf8', () => {
+  fs.writeFile(destination, JSON.stringify(settings, null, 4), 'utf8', () => {
     console.log(chalk.blue('Settings file is created'))
   })
 }
@@ -175,26 +184,26 @@ export const readSettingFile = (): IProjectSettings => {
   return JSON.parse(settings)
 }
 
-const removeFileOrDirectoryWithContent = (
-  path: string,
-  message: string = `Directory ${path} is deleted`
-) => {
-  rimraf(path, () => {
-    console.log(chalk.blue(message))
-  })
+const removeFileOrDirectoryWithContent = (path: string) => {
+  fs.rmSync(path, { recursive: true, force: true })
 }
 
 const cleanTempDirectory = () => {
-  removeFileOrDirectoryWithContent(archiveDirPath, 'Temp files are deleted')
+  removeFileOrDirectoryWithContent(archiveDirPath)
 }
 
-const composeTemplate = (templateSettings, templateName) => {
+const composeTemplate = async (templateSettings, templateName) => {
   console.log(chalk.blue('Composing the template...'))
-  const components = Object.keys(templateSettings).filter((key: string) => {
+  const components = Object.keys(templateSettings)
+  const selectedComponents = components.filter((key: string) => {
     return templateSettings[key]
   })
+  const notSelectedComponents = components.filter((key: string) => {
+    return !templateSettings[key]
+  })
   const destinationDirectory = `${tempDirName}/${GITHUB_TEMPLATES_PATH}/${templateName}`
-  components.forEach((component: string) => {
+  // Copy files from selected components
+  for (const component of selectedComponents) {
     const componentDirectory = `${destinationDirectory}/${component}`
     copyTempFilesToDestination(
       componentDirectory,
@@ -205,7 +214,13 @@ const composeTemplate = (templateSettings, templateName) => {
     )
     // Remove template component
     removeFileOrDirectoryWithContent(componentDirectory)
-  })
+  }
+  // Delete non selected components from template
+  for (const component of notSelectedComponents) {
+    const componentDirectory = `${destinationDirectory}/${component}`
+    // Remove template component
+    removeFileOrDirectoryWithContent(componentDirectory)
+  }
   // Remove template settings file
   removeFileOrDirectoryWithContent(`${destinationDirectory}/settings.js`)
 }
@@ -247,15 +262,15 @@ export const copyTemplateFiles = async (
   if (settings.templates) {
     console.log(chalk.blue('Found composable template'))
     settings.templates.test = false
-    composeTemplate(settings.templates, templateName)
+    await composeTemplate(settings.templates, templateName)
   }
-  // copyTempFilesToDestination(
-  //   tempDirectory,
-  //   destinationDirectory,
-  //   templateName,
-  //   settings
-  // )
-  // createSettingsFile(templateName, settings, destinationDirectory)
+  copyTempFilesToDestination(
+    tempDirectory,
+    path.join(process.cwd(), destinationDirectory),
+    templateName,
+    settings
+  )
+  createSettingsFile(templateName, settings, destinationDirectory)
   // cleanTempDirectory()
 }
 
