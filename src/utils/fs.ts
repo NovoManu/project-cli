@@ -81,6 +81,7 @@ const copyFile = (sourceDir: string, destinationDir: string, file: Dirent) => {
   const destination = `${destinationDir}/${file.name}`
   const fileContent = fs.readFileSync(source)
   checkOrCreateDirectory(destinationDir)
+  console.log(sourceDir, destinationDir)
   try {
     fs.writeFileSync(destination, fileContent)
   } catch (e) {
@@ -127,9 +128,10 @@ const copyTempFilesToDestination = (
       if (file.isDirectory()) {
         copyTempFilesToDestination(
           path.join(tempDirectory, file.name),
-          destDirectory,
+          path.join(destDirectory, file.name),
           templateName,
-          settings
+          settings,
+          isRawCopy
         )
       } else {
         if (isRawCopy) {
@@ -201,8 +203,10 @@ const composeTemplate = (templateSettings, templateName) => {
       {},
       true
     )
+    // Remove template component
     removeFileOrDirectoryWithContent(componentDirectory)
   })
+  // Remove template settings file
   removeFileOrDirectoryWithContent(`${destinationDirectory}/settings.js`)
 }
 
