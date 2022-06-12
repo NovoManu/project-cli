@@ -53,3 +53,7 @@ export const readSettingFile = (): IProjectSettings => {
   }
   return JSON.parse(settings)
 }
+
+export const getDefaultPackageName = (templateName: string): string => {
+  return `my-project-${templateName}`
+}

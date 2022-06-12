@@ -1,6 +1,9 @@
 import * as chalk from 'chalk'
 import { tempDirName } from './constants'
-import { copyTempFilesToDestination, removeFileOrDirectoryWithContent } from './fs'
+import {
+  copyTempFilesToDestination,
+  removeFileOrDirectoryWithContent
+} from './fs'
 
 const { GITHUB_TEMPLATES_PATH } = process.env
 

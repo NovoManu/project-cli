@@ -8,11 +8,10 @@ import saveArchive from './tar'
 import composeTemplate from './composeTemplate'
 import {
   checkOrCreateDirectory,
-  getDefaultPackageName,
   copyTempFilesToDestination,
   cleanTempDirectory
 } from './fs'
-import { createSettingsFile } from './settings'
+import { createSettingsFile, getDefaultPackageName } from './settings'
 
 const { GITHUB_TEMPLATES_PATH } = process.env
 

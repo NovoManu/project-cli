@@ -6,10 +6,10 @@ require('dotenv').config({
   path: `${path.join(__dirname, '..', '..')}/.env`
 })
 import installProject from '../utils/projectInstall'
+import syncProject from '../utils/projectSync'
 import { Command } from 'commander'
 import { getTemplates, getRepositoryTarArchive } from '../utils/github'
-import { syncProject, readSettingFile } from '../utils/fs'
-import { getInstallationSettings } from '../utils/settings'
+import { getInstallationSettings, readSettingFile } from '../utils/settings'
 
 export default (command: Command) => {
   const project = command
