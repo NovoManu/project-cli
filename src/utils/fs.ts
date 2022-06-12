@@ -1,4 +1,4 @@
-import { IInstallationSettings } from '../types'
+import { IProjectSettings } from '../types'
 import sortDependencies from './sortDependencies'
 import deepMerge from './deepMerge'
 import filePrefixes from './prefixes'
@@ -81,7 +81,7 @@ export const copyTempFilesToDestination = (
   tempDirectory: string,
   destDirectory: string,
   templateName: string,
-  settings: IInstallationSettings | {},
+  settings: IProjectSettings | {},
   isRawCopy: boolean = false
 ) => {
   fs.readdirSync(tempDirectory, { withFileTypes: true }).forEach(

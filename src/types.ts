@@ -1,8 +1,4 @@
-export interface IInstallationSettings {
+export interface IProjectSettings {
   [key: string]: any
-  devPort: number
-}
-
-export interface IProjectSettings extends IInstallationSettings{
   templateId: string
 }

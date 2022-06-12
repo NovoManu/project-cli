@@ -2,7 +2,6 @@ const confirm = require('@inquirer/confirm')
 const input = require('@inquirer/input')
 
 import { Buffer } from 'buffer'
-import { IInstallationSettings } from '../types'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as chalk from 'chalk'
@@ -21,17 +20,16 @@ const { GITHUB_TEMPLATES_PATH } = process.env
 const installProject = async (
   buffer: Buffer,
   templateName: string,
-  projectName: string = null,
-  settings: IInstallationSettings
+  projectName: string = null
 ) => {
   await saveArchive(buffer)
   // Check template settings file
   const templateInstallationSettingsFile = `${archiveDirPath}/${GITHUB_TEMPLATES_PATH}/${templateName}/${composeTemplateSettingsFile}`
-  let templateInstallationSettings = {}
+  let settings: { [key: string]: any } = {}
   if (fs.existsSync(templateInstallationSettingsFile)) {
     try {
       const getInstallationSettings = require(templateInstallationSettingsFile)
-      templateInstallationSettings = await getInstallationSettings({
+      settings = await getInstallationSettings({
         input,
         confirm
       })
@@ -39,10 +37,6 @@ const installProject = async (
       console.error(e)
       throw new Error('Cannot read template settings file')
     }
-  }
-  settings = {
-    ...settings,
-    ...templateInstallationSettings
   }
   const destinationDirectory =
     projectName || getDefaultPackageName(templateName)

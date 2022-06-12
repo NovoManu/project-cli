@@ -1,36 +1,12 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import * as chalk from 'chalk'
-import { IInstallationSettings, IProjectSettings } from '../types'
+import { IProjectSettings } from '../types'
 import { settingsFileName } from './constants'
-
-export const getInstallationSettings = async ({
-  input
-}:{ [key: string]: any }): Promise<IInstallationSettings> => {
-  const settings: IInstallationSettings = {
-    devPort: 8080
-  }
-  const devPort = await input({
-    message: 'Enter development port',
-    default: 8080,
-    validate: (value) =>
-      new Promise((resolve) => {
-        setTimeout(
-          () =>
-            resolve(
-              Number.isInteger(Number(value)) || 'You must provide a number'
-            ),
-          3000
-        )
-      })
-  })
-  settings.devPort = Number(devPort)
-  return settings
-}
 
 export const createSettingsFile = (
   templateName: string,
-  installationSettings: IInstallationSettings,
+  installationSettings,
   destinationDirectory
 ) => {
   const destination = path.join(destinationDirectory, `/${settingsFileName}`)
