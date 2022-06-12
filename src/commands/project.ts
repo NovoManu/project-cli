@@ -5,9 +5,10 @@ const chalk = require('chalk')
 require('dotenv').config({
   path: `${path.join(__dirname, '..', '..')}/.env`
 })
+import installProject from '../utils/projectInstall'
 import { Command } from 'commander'
 import { getTemplates, getRepositoryTarArchive } from '../utils/github'
-import { copyTemplateFiles, syncProject, readSettingFile } from '../utils/fs'
+import { syncProject, readSettingFile } from '../utils/fs'
 import { getInstallationSettings } from '../utils/settings'
 
 export default (command: Command) => {
@@ -33,7 +34,7 @@ export default (command: Command) => {
             console.log(`${++i}: ${name}`)
           })
         } else {
-          console.log('No Templates found')
+          console.log(chalk.red('No templates found'))
         }
       } catch (e) {
         console.log(chalk.red('Not possible to get templates'))
@@ -61,7 +62,7 @@ export default (command: Command) => {
           console.log(chalk.blue(`Copying files from template ${templateName}`))
           const installationSettings: IInstallationSettings =
             await getInstallationSettings()
-          await copyTemplateFiles(
+          await installProject(
             // @ts-ignore
             res.data,
             templateName,

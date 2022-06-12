@@ -39,11 +39,11 @@ const filePrefixes: IFilePrefix[] = [
   }
 ]
 
-const getDefaultPackageName = (templateName: string): string => {
+export const getDefaultPackageName = (templateName: string): string => {
   return `my-project-${templateName}`
 }
 
-const checkOrCreateDirectory = (dir: string) => {
+export const checkOrCreateDirectory = (dir: string) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
   }
@@ -61,7 +61,7 @@ const extractTarArchive = () => {
   })
 }
 
-const saveTempArchive = (arr: Buffer) => {
+export const saveTempArchive = (arr: Buffer) => {
   fs.appendFileSync(archiveFilePath, Buffer.from(arr))
 }
 
@@ -125,7 +125,7 @@ const copyFileWithReplacement = (
   }
 }
 
-const copyTempFilesToDestination = (
+export const copyTempFilesToDestination = (
   tempDirectory: string,
   destDirectory: string,
   templateName: string,
@@ -184,11 +184,11 @@ export const readSettingFile = (): IProjectSettings => {
   return JSON.parse(settings)
 }
 
-const removeFileOrDirectoryWithContent = (path: string) => {
+export const removeFileOrDirectoryWithContent = (path: string) => {
   fs.rmSync(path, { recursive: true, force: true })
 }
 
-const cleanTempDirectory = () => {
+export const cleanTempDirectory = () => {
   removeFileOrDirectoryWithContent(archiveDirPath)
 }
 
@@ -225,7 +225,7 @@ const composeTemplate = async (templateSettings, templateName) => {
   removeFileOrDirectoryWithContent(`${destinationDirectory}/settings.js`)
 }
 
-export const copyTemplateFiles = async (
+export const installProject = async (
   buffer: Buffer,
   templateName: string,
   projectName: string = null,
