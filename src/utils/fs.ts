@@ -261,7 +261,6 @@ export const copyTemplateFiles = async (
   // Compose composable template
   if (settings.templates) {
     console.log(chalk.blue('Found composable template'))
-    settings.templates.test = false
     await composeTemplate(settings.templates, templateName)
   }
   copyTempFilesToDestination(
@@ -271,7 +270,7 @@ export const copyTemplateFiles = async (
     settings
   )
   createSettingsFile(templateName, settings, destinationDirectory)
-  // cleanTempDirectory()
+  cleanTempDirectory()
 }
 
 const removeBootstrapOnlyFiles = (tempPath: string) => {
@@ -321,6 +320,15 @@ export const syncProject = async (
   )
   removeBootstrapOnlyFiles(tempDirectory)
   removeSyncFilesIfExists(tempDirectory, settings.templateId)
-  copyTempFilesToDestination(tempDirectory, '', settings.templateId, settings)
+  // Sync composable template
+  if (settings.templates) {
+    await composeTemplate(settings.templates, settings.templateId)
+  }
+  copyTempFilesToDestination(
+    tempDirectory,
+    process.cwd(),
+    settings.templateId,
+    settings
+  )
   cleanTempDirectory()
 }
