@@ -1,4 +1,5 @@
 const chalk = require('chalk')
+const input = require('@inquirer/input')
 import { getTemplates, getRepositoryTarArchive } from '../../utils/github'
 import { IInstallationSettings } from '../../types'
 import { getInstallationSettings } from '../../utils/settings'
@@ -18,7 +19,7 @@ const installCallback = async ({
       const res = await getRepositoryTarArchive()
       console.log(chalk.blue(`Copying files from template ${templateName}`))
       const installationSettings: IInstallationSettings =
-        await getInstallationSettings()
+        await getInstallationSettings({ input })
       await installProject(
         // @ts-ignore
         res.data,

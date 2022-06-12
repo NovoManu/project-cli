@@ -1,6 +1,6 @@
 {
   "name": "@novomanu/project-cli",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "author": "Manu Ustenko",
   "description": "Manu Ustenko cli",
   "main": "lib/index.js",

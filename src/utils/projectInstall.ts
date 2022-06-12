@@ -1,3 +1,6 @@
+const confirm = require('@inquirer/confirm')
+const input = require('@inquirer/input')
+
 import { Buffer } from 'buffer'
 import { IInstallationSettings } from '../types'
 import * as path from 'path'
@@ -28,7 +31,10 @@ const installProject = async (
   if (fs.existsSync(templateInstallationSettingsFile)) {
     try {
       const getInstallationSettings = require(templateInstallationSettingsFile)
-      templateInstallationSettings = await getInstallationSettings()
+      templateInstallationSettings = await getInstallationSettings({
+        input,
+        confirm
+      })
     } catch (e) {
       console.error(e)
       throw new Error('Cannot read template settings file')
