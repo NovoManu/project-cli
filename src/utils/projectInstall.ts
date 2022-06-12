@@ -3,7 +3,7 @@ import { IInstallationSettings } from '../types'
 import * as path from 'path'
 import * as fs from 'fs'
 import * as chalk from 'chalk'
-import { archiveDirPath } from './constants'
+import { archiveDirPath, composeTemplateSettingsFile } from './constants'
 import saveArchive from './tar'
 import composeTemplate from './composeTemplate'
 import {
@@ -23,7 +23,7 @@ const installProject = async (
 ) => {
   await saveArchive(buffer)
   // Check template settings file
-  const templateInstallationSettingsFile = `${archiveDirPath}/${GITHUB_TEMPLATES_PATH}/${templateName}/settings.js`
+  const templateInstallationSettingsFile = `${archiveDirPath}/${GITHUB_TEMPLATES_PATH}/${templateName}/${composeTemplateSettingsFile}`
   let templateInstallationSettings = {}
   if (fs.existsSync(templateInstallationSettingsFile)) {
     try {

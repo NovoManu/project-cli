@@ -1,5 +1,5 @@
 import * as chalk from 'chalk'
-import { tempDirName } from './constants'
+import { composeTemplateSettingsFile, tempDirName } from './constants'
 import {
   copyTempFilesToDestination,
   removeFileOrDirectoryWithContent
@@ -37,7 +37,9 @@ const composeTemplate = async (templateSettings, templateName) => {
     removeFileOrDirectoryWithContent(componentDirectory)
   }
   // Remove template settings file
-  removeFileOrDirectoryWithContent(`${destinationDirectory}/settings.js`)
+  removeFileOrDirectoryWithContent(
+    `${destinationDirectory}/${composeTemplateSettingsFile}`
+  )
 }
 
 export default composeTemplate
