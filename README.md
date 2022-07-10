@@ -40,7 +40,7 @@ You can use the package without additional installation using
 $ npm init @novomanu/project-cli
 ```
 
-After running the command `npm init @novomanu/project-cli` or `mucli` it will initiate a wizard with questions about what would you like to do with your templates.
+After running the command `npm init @novomanu/project-cli` it will initiate a wizard with questions about what would you like to do with your templates.
 
 # Templates creation
 It is possible to specify your own templates: install and sync.
