@@ -40,16 +40,6 @@ You can use the package without additional installation using
 $ npm init @novomanu/project-cli
 ```
 
-Or install the package globally
-```
-$ npm install -g @novomanu/project-cli
-```
-
-It will give you global command `mucli`
-```
-$ mucli
-```
-
 After running the command `npm init @novomanu/project-cli` or `mucli` it will initiate a wizard with questions about what would you like to do with your templates.
 
 # Templates creation
