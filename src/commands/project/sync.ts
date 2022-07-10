@@ -99,8 +99,8 @@ export default async () => {
   }`
   processPrefixedFiles(tempDir, settings.template.id)
 
-  // Check if template is composable (it must include templates property)
-  if (settings.templates) {
+  // Check if template is composable (it must include modules property)
+  if (settings.modules) {
     // Todo: Compose composable template
   }
 

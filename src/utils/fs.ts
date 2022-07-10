@@ -1,8 +1,11 @@
+import * as path from 'path'
 import * as fs from 'fs'
 import { Dirent } from 'fs'
 import filePrefixes from './prefixes'
 import * as nunjucks from 'nunjucks'
 import { tempDirName } from './constants'
+import deepMerge from './deep-merge'
+const fse = require('fs-extra')
 
 const { GITHUB_TEMPLATES_PATH } = process.env
 
@@ -51,4 +54,35 @@ export const removePrefixFromFileName = (fileName: string) => {
 */
 export const setDynamicDataInFile = (fileName: string, settings) => {
   return nunjucks.render(fileName, settings)
+}
+
+export const copyFilesWithMerge = (source, destination) => {
+  fs.readdirSync(source, { withFileTypes: true }).forEach((file: Dirent) => {
+    if (file.isDirectory()) {
+      copyFilesWithMerge(
+        path.join(source, file.name),
+        path.join(destination, file.name)
+      )
+    } else {
+      const sourceFile = `${source}/${file.name}`
+      const destinationFile = `${destination}/${file.name}`
+      const supportedMergeFiles = ['.json']
+      if (
+        fs.existsSync(destinationFile) &&
+        supportedMergeFiles.some((ex) => sourceFile.includes(ex))
+      ) {
+        const sourceJson = JSON.parse(fs.readFileSync(sourceFile).toString())
+        const destinationJson = JSON.parse(
+          fs.readFileSync(destinationFile).toString()
+        )
+        fs.writeFileSync(
+          destinationFile,
+          JSON.stringify(deepMerge(destinationJson, sourceJson), null, 2),
+          'utf-8'
+        )
+      } else {
+        fse.copySync(sourceFile, destinationFile)
+      }
+    }
+  })
 }

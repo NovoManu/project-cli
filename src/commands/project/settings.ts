@@ -3,7 +3,9 @@ import { getTemplatesDir } from '../../utils/fs'
 import * as fs from 'fs'
 const chalk = require('chalk')
 
-const TEMPLATE_SETTINGS_FILE = `[[b]]settings.ts`
+const { GITHUB_TEMPLATES_PATH } = process.env
+
+const TEMPLATE_SETTINGS_FILE = `[[b]]settings`
 const SETTING_STORAGE_FILE = 'musli.json'
 
 export interface ISettings {
@@ -33,9 +35,18 @@ export const getSettings = async (): Promise<ISettings> => {
 export const readSettingsFromTemplate = async (
   templateId: string
 ): Promise<{ [key: string]: any }> => {
-  const templateSettingsFile = `${getTemplatesDir()}/${templateId}/${TEMPLATE_SETTINGS_FILE}`
+  const templateSettingsBase = `${getTemplatesDir()}/${GITHUB_TEMPLATES_PATH}/${templateId}/${TEMPLATE_SETTINGS_FILE}`
+  const templateSettingsFileTS = `${templateSettingsBase}.ts`
+  const templateSettingsFileJS = `${templateSettingsBase}.js`
+  let templateSettingsFile = null
+  if (fs.existsSync(templateSettingsFileTS)) {
+    templateSettingsFile = templateSettingsFileTS
+  }
+  if (fs.existsSync(templateSettingsFileJS)) {
+    templateSettingsFile = templateSettingsFileJS
+  }
   let settings: { [key: string]: any } = {}
-  if (fs.existsSync(templateSettingsFile)) {
+  if (templateSettingsFile) {
     try {
       const getInstallationSettings = require(templateSettingsFile)
       settings = await getInstallationSettings({

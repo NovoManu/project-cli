@@ -12,6 +12,7 @@ import {
 } from '../../utils/fs'
 import deepMerge from '../../utils/deep-merge'
 import processFilesInTemplate from '../../utils/files-processor'
+import composeTemplate from '../../utils/compose-template'
 const chalk = require('chalk')
 
 const { GITHUB_TEMPLATES_PATH } = process.env
@@ -41,9 +42,10 @@ export default async () => {
   // Merge global and template settings
   settings = deepMerge(settings, templateSettings)
 
-  // Check if template is composable (it must include templates property)
-  if (settings.templates) {
-    // Todo: Compose composable template
+  // Check if template is composable (it must include modules property)
+  if (settings.modules) {
+    console.log(chalk.white('Found composable template'))
+    await composeTemplate(settings)
   }
 
   // Create destination directory
