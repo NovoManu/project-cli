@@ -1,22 +1,17 @@
+import { fetchTemplates, removeTemplates } from '../../utils/github'
+import { getTemplatesDir, getListOfTemplates } from '../../utils/fs'
+import * as fs from 'fs'
 const chalk = require('chalk')
-import { getTemplates } from '../../utils/github'
 
-const templatesCallback = async () => {
-  try {
-    console.log(chalk.inverse('Getting templates'))
-    const templates = await getTemplates()
-    if (templates) {
-      console.log('Next templates are found:')
-      templates.forEach(({ name }, i) => {
-        console.log(`${++i}: ${name}`)
-      })
-    } else {
-      console.log(chalk.red('No templates found'))
-    }
-  } catch (e) {
-    console.log(chalk.red('Not possible to get templates'))
-    console.log(e)
+const printListOfTemplates = async (): Promise<void> => {
+  if (!fs.existsSync(getTemplatesDir())) {
+    await fetchTemplates()
   }
+  const templates = getListOfTemplates()
+  templates.forEach((template, index) => {
+    console.log(chalk.inverse(`${++index}: ${template}`))
+  })
+  await removeTemplates()
 }
 
-export default templatesCallback
+export default printListOfTemplates

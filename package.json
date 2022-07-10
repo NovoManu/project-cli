@@ -19,7 +19,9 @@
     "prepare": "npm run build",
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
-    "postversion": "git push && git push --tags"
+    "postversion": "git push && git push --tags",
+    "fetch-templates": "npx ts-node src/scripts/fetch-templates.ts",
+    "remove-templates": "npx ts-node src/scripts/remove-templates.ts"
   },
   "repository": {
     "type": "git",
@@ -31,8 +33,9 @@
   },
   "homepage": "https://github.com/NovoManu/project-cli#readme",
   "dependencies": {
-    "@inquirer/confirm": "^0.0.19-alpha.0",
-    "@inquirer/input": "^0.0.20-alpha.0",
+    "@inquirer/confirm": "0.0.19-alpha.0",
+    "@inquirer/input": "0.0.20-alpha.0",
+    "@inquirer/select": "0.0.20-alpha.0",
     "@octokit/core": "^3.6.0",
     "chalk": "4.1.2",
     "commander": "^9.2.0",

@@ -1,41 +1,40 @@
-import * as path from 'path'
-require('dotenv').config({
-  path: `${path.join(__dirname, '..', '..', '..')}/.env`
-})
-import templatesCallback from './templates'
-import installCallback from './install'
-import syncCallback from './sync'
 import { Command } from 'commander'
+import { select } from '../../utils/inquirer'
+import installProject from './install'
+import syncProject from './sync'
+const chalk = require('chalk')
+
+enum initChoices {
+  INSTALL = 'install',
+  SYNC = 'sync'
+}
 
 export default (command: Command) => {
+  /*
+    Install or sync project
+  */
   const project = command
-    .command('project')
-    .description(
-      'Projects initialization (see list of sub-commands with --help)'
-    )
-
-  /*
-    Get list of available templates
-  */
-  project
-    .command('templates')
-    .description('Get available templates')
-    .action(templatesCallback)
-
-  /*
-    Install project from a template
-  */
-  project
-    .command('install')
-    .description('Install a new project from a template')
-    .option('-t, --template <template>', 'Template name')
-    .option('-n, --name <name>', 'Project name')
-    .action(installCallback)
-  /*
-    Project sync with a template
- */
-  project
-    .command('sync')
-    .description('Sync a project with a template')
-    .action(syncCallback)
+    .description('Project initialization')
+    .action(async () => {
+      const installationChoices = [
+        {
+          value: initChoices.INSTALL,
+          name: 'Create new project'
+        },
+        {
+          value: initChoices.SYNC,
+          name: 'Sync current project'
+        }
+      ]
+      const choice = await select(
+        chalk.white('What would you like to do?'),
+        installationChoices
+      )
+      if (choice === initChoices.INSTALL) {
+        await installProject()
+      }
+      if (choice === initChoices.SYNC) {
+        await syncProject()
+      }
+    })
 }

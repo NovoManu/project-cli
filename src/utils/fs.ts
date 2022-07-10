@@ -1,13 +1,10 @@
-import { IProjectSettings } from '../types'
-import sortDependencies from './sortDependencies'
-import deepMerge from './deepMerge'
-import filePrefixes from './prefixes'
-
-import * as path from 'path'
 import * as fs from 'fs'
 import { Dirent } from 'fs'
+import filePrefixes from './prefixes'
 import * as nunjucks from 'nunjucks'
-import { archiveDirPath } from './constants'
+import { tempDirName } from './constants'
+
+const { GITHUB_TEMPLATES_PATH } = process.env
 
 nunjucks.configure({ autoescape: false })
 
@@ -15,6 +12,26 @@ export const checkOrCreateDirectory = (dir: string) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true })
   }
+}
+
+export const removeFileOrDirectoryWithContent = (path: string): void => {
+  fs.rmSync(path, { recursive: true, force: true })
+}
+
+export const getTemplatesDir = () => `${process.cwd()}/${tempDirName}`
+
+export const getListOfTemplates = (): Array<string> => {
+  const tempDir = `${getTemplatesDir()}/${GITHUB_TEMPLATES_PATH}`
+  const templates = []
+  if (fs.existsSync(tempDir)) {
+    fs.readdirSync(tempDir, { withFileTypes: true }).forEach((file: Dirent) => {
+      // Show only directories in the templates repository and exclude hidden ones (e.t. .git)
+      if (file.isDirectory() && !file.name.startsWith('.')) {
+        templates.push(file.name)
+      }
+    })
+  }
+  return templates
 }
 
 export const removePrefixFromFileName = (fileName: string) => {
@@ -25,96 +42,13 @@ export const removePrefixFromFileName = (fileName: string) => {
   return fileName
 }
 
-const setDynamicDataInFile = (fileName: string, settings) => {
+/*
+  Nunjuck is template engine which replace strings in files.
+  For example:
+  We have settingsFile = { myProperty: 'Hello World' }
+  if in a file nunjuck meets string {{ myProperty }} (double curly braces are mandatory) it will replace it with value: Hello World.
+  More info see in the documentation: https://mozilla.github.io/nunjucks/
+*/
+export const setDynamicDataInFile = (fileName: string, settings) => {
   return nunjucks.render(fileName, settings)
-}
-
-const checkMergeableFile = (fileName: string) => {
-  const filesForMerge = ['package.json']
-  return filesForMerge.some((file: string) => file.includes(fileName))
-}
-
-const copyFile = (sourceDir: string, destinationDir: string, file: Dirent) => {
-  const source = `${sourceDir}/${file.name}`
-  const destination = `${destinationDir}/${file.name}`
-  let fileContent = fs.readFileSync(source, 'utf-8')
-  checkOrCreateDirectory(destinationDir)
-  if (checkMergeableFile(file.name) && fs.existsSync(destination)) {
-    const existing = fs.readFileSync(destination, 'utf-8')
-    const merge = sortDependencies(
-      deepMerge(JSON.parse(existing), JSON.parse(fileContent))
-    )
-    fileContent = JSON.stringify(merge, null, 4)
-  }
-  try {
-    fs.writeFileSync(destination, fileContent)
-  } catch (e) {
-    throw e
-  }
-}
-
-const copyFileWithReplacement = (
-  tempDirectory: string,
-  destDirectory: string,
-  file: Dirent,
-  templateName,
-  settings
-) => {
-  const source = `${tempDirectory}/${file.name}`
-  const notSupportedFiles = ['.jpg', '.png', 'jpeg', 'webp', '.gif', '.woff']
-  let fileContent
-  if (notSupportedFiles.some((v) => file.name.includes(v))) {
-    fileContent = fs.readFileSync(source)
-  } else {
-    fileContent = setDynamicDataInFile(source, settings)
-  }
-  const destination = removePrefixFromFileName(`${destDirectory}/${file.name}`)
-  checkOrCreateDirectory(destDirectory)
-  try {
-    fs.writeFileSync(destination, fileContent)
-  } catch (e) {
-    throw e
-  }
-}
-
-export const copyTempFilesToDestination = (
-  tempDirectory: string,
-  destDirectory: string,
-  templateName: string,
-  settings: IProjectSettings | {},
-  isRawCopy: boolean = false
-) => {
-  fs.readdirSync(tempDirectory, { withFileTypes: true }).forEach(
-    (file: Dirent) => {
-      if (file.isDirectory()) {
-        copyTempFilesToDestination(
-          path.join(tempDirectory, file.name),
-          path.join(destDirectory, file.name),
-          templateName,
-          settings,
-          isRawCopy
-        )
-      } else {
-        if (isRawCopy) {
-          copyFile(tempDirectory, destDirectory, file)
-        } else {
-          copyFileWithReplacement(
-            tempDirectory,
-            destDirectory,
-            file,
-            templateName,
-            settings
-          )
-        }
-      }
-    }
-  )
-}
-
-export const removeFileOrDirectoryWithContent = (path: string) => {
-  fs.rmSync(path, { recursive: true, force: true })
-}
-
-export const cleanTempDirectory = () => {
-  removeFileOrDirectoryWithContent(archiveDirPath)
 }

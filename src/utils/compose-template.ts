@@ -1,9 +1,6 @@
 import * as chalk from 'chalk'
 import { composeTemplateSettingsFile, tempDirName } from './constants'
-import {
-  copyTempFilesToDestination,
-  removeFileOrDirectoryWithContent
-} from './fs'
+import { removeFileOrDirectoryWithContent } from './fs'
 
 const { GITHUB_TEMPLATES_PATH } = process.env
 
@@ -20,13 +17,7 @@ const composeTemplate = async (templateSettings, templateName) => {
   // Copy files from selected components
   for (const component of selectedComponents) {
     const componentDirectory = `${destinationDirectory}/${component}`
-    copyTempFilesToDestination(
-      componentDirectory,
-      destinationDirectory,
-      templateName,
-      {},
-      true
-    )
+    // Todo: compose here
     // Remove template component
     removeFileOrDirectoryWithContent(componentDirectory)
   }

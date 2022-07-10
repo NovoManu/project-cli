@@ -13,7 +13,19 @@ const filePrefixes: IFilePrefix[] = [
   {
     prefix: '[[s]]',
     id: 'sync',
-    description: 'Sync only. It will be added only if file is not exists'
+    description: 'Sync only. It will be added only if file does not exist'
+  },
+  {
+    prefix: '[[m]]',
+    id: 'merge',
+    description:
+      'Merge files. It should merge two files and no overwrite common properties'
+  },
+  {
+    prefix: '[[d]]',
+    id: 'delete',
+    description:
+      'Delete files. File will be deleted if it exists in the project'
   }
 ]
 
