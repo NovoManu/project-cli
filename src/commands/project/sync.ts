@@ -9,6 +9,8 @@ import processFilesInTemplate from '../../utils/files-processor'
 import { tempDirName } from '../../utils/constants'
 const chalk = require('chalk')
 
+const { GITHUB_TEMPLATES_PATH } = process.env
+
 const processBootstrapFile = (tempPath: string, fileName: string): void => {
   fs.unlinkSync(path.join(tempPath, fileName))
 }
@@ -18,7 +20,7 @@ const processSyncFile = (
   templateName: string,
   fileName: string
 ) => {
-  const replacementString = `${tempDirName}/${templateName}`
+  const replacementString = `${tempDirName}/${GITHUB_TEMPLATES_PATH}/${templateName}`
   // Get file path in the current project (just remove two parts from temp file)
   const projectDestination = tempPath.replace(replacementString, '')
   // Check if file exists in the current project
@@ -36,7 +38,7 @@ const processDeleteFile = (
   templateName: string,
   fileName: string
 ) => {
-  const replacementString = `.tmp/${templateName}`
+  const replacementString = `${tempDirName}/${GITHUB_TEMPLATES_PATH}/${templateName}`
   // Get file path in the current project (just remove two parts from temp file)
   const projectDestination = tempPath.replace(replacementString, '')
 
@@ -92,8 +94,10 @@ export default async () => {
   const settings = readSettingsFile()
 
   // Clean up the temporary folder from not used files
-  const tempPath = `${getTemplatesDir()}/${settings.template.id}`
-  processPrefixedFiles(tempPath, settings.template.id)
+  const tempDir = `${getTemplatesDir()}/${GITHUB_TEMPLATES_PATH}/${
+    settings.template.id
+  }`
+  processPrefixedFiles(tempDir, settings.template.id)
 
   // Check if template is composable (it must include templates property)
   if (settings.templates) {
@@ -101,13 +105,12 @@ export default async () => {
   }
 
   // Process and copy files in template
-  const tempDir = `${getTemplatesDir()}/${settings.template.id}`
   const destDir = process.cwd()
   await processFilesInTemplate(tempDir, destDir, settings)
 
-  // Clean-up and remove .tmp directory
+  // Clean-up and remove temp directory
   await removeTemplates()
 
   // Congrats message
-  console.log(chalk.blue(`The project is synchronized successfully`))
+  console.log(chalk.white(`The project is synchronized successfully`))
 }
