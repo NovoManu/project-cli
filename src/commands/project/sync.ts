@@ -7,6 +7,7 @@ import { Dirent } from 'fs'
 import filePrefixes from '../../utils/prefixes'
 import processFilesInTemplate from '../../utils/files-processor'
 import { tempDirName } from '../../utils/constants'
+import composeTemplate from '../../utils/compose-template'
 const chalk = require('chalk')
 
 const { GITHUB_TEMPLATES_PATH } = process.env
@@ -101,7 +102,8 @@ export default async () => {
 
   // Check if template is composable (it must include modules property)
   if (settings.modules) {
-    // Todo: Compose composable template
+    console.log(chalk.white('Found composable template'))
+    await composeTemplate(settings)
   }
 
   // Process and copy files in template

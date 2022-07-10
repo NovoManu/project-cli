@@ -1,5 +1,5 @@
 import { input, select, confirm } from '../../utils/inquirer'
-import { getTemplatesDir } from '../../utils/fs'
+import { getTemplatesDir, removeFileOrDirectoryWithContent } from '../../utils/fs'
 import * as fs from 'fs'
 const chalk = require('chalk')
 
@@ -35,6 +35,7 @@ export const getSettings = async (): Promise<ISettings> => {
 export const readSettingsFromTemplate = async (
   templateId: string
 ): Promise<{ [key: string]: any }> => {
+  // Check if settings.js or settings.ts are exist
   const templateSettingsBase = `${getTemplatesDir()}/${GITHUB_TEMPLATES_PATH}/${templateId}/${TEMPLATE_SETTINGS_FILE}`
   const templateSettingsFileTS = `${templateSettingsBase}.ts`
   const templateSettingsFileJS = `${templateSettingsBase}.js`
@@ -58,6 +59,8 @@ export const readSettingsFromTemplate = async (
       console.error(e)
     }
   }
+  // Remove settings file
+  removeFileOrDirectoryWithContent(templateSettingsFile)
   return settings
 }
 
