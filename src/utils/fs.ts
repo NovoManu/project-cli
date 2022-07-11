@@ -18,6 +18,7 @@ export const checkOrCreateDirectory = (dir: string) => {
 }
 
 export const removeFileOrDirectoryWithContent = (path: string): void => {
+  if (!path) return
   fs.rmSync(path, { recursive: true, force: true })
 }
 

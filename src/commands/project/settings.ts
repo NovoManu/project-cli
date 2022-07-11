@@ -6,7 +6,7 @@ const chalk = require('chalk')
 const { GITHUB_TEMPLATES_PATH } = process.env
 
 const TEMPLATE_SETTINGS_FILE = `[[b]]settings`
-const SETTING_STORAGE_FILE = 'musli.json'
+const SETTING_STORAGE_FILE = 'mucli.json'
 
 export interface ISettings {
   [key: string]: any
