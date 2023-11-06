@@ -34,10 +34,10 @@ export default async () => {
   const templates = getListOfTemplates().map((template: string) => ({
     value: template
   }))
-  settings.template.id = await select(chalk.white('Select template'), templates)
+  settings.templateId = await select(chalk.white('Select template'), templates)
 
   // Getting template settings
-  const templateSettings = await readSettingsFromTemplate(settings.template.id)
+  const templateSettings = await readSettingsFromTemplate(settings.templateId)
 
   // Merge global and template settings
   settings = deepMerge(settings, templateSettings)
@@ -53,7 +53,7 @@ export default async () => {
 
   // Process and copy files in template
   const tempDir = `${getTemplatesDir()}/${GITHUB_TEMPLATES_PATH}/${
-    settings.template.id
+    settings.templateId
   }`
   const destDir = `${process.cwd()}/${settings.folderName}`
   await processFilesInTemplate(tempDir, destDir, settings)
@@ -67,7 +67,7 @@ export default async () => {
 
   // Congrats message
   console.log(
-    chalk.white(`You successfully installed ${settings.template.id} project`)
+    chalk.white(`You successfully installed ${settings.templateId} project`)
   )
   console.log(chalk.white('*************************'))
   console.log(chalk.white(`$ cd ${folderName}`))

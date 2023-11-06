@@ -93,12 +93,12 @@ export default async () => {
 
   // Get project settings
   const settings = readSettingsFile()
-
+  console.log(settings)
   // Clean up the temporary folder from not used files
   const tempDir = `${getTemplatesDir()}/${GITHUB_TEMPLATES_PATH}/${
-    settings.template.id
+    settings.templateId
   }`
-  processPrefixedFiles(tempDir, settings.template.id)
+  processPrefixedFiles(tempDir, settings.templateId)
 
   // Check if template is composable (it must include modules property)
   if (settings.modules) {

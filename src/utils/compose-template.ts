@@ -18,7 +18,7 @@ const composeTemplate = async (settings) => {
     return !settings.modules[key]
   })
   const destinationDirectory = `${getTemplatesDir()}/${GITHUB_TEMPLATES_PATH}/${
-    settings.template.id
+    settings.templateId
   }`
   // Copy files from selected components
   for (const component of selectedComponents) {

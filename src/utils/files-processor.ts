@@ -38,7 +38,7 @@ const processFile = (
   // Set proper name for final destination for files
   let destFile = `${destDir.replace(
     // Remove template name from the path
-    `${settings.template.id}/`,
+    `${settings.templateId}/`,
     ''
   )}/${fileName}`
   destFile = removePrefixFromFileName(destFile)
